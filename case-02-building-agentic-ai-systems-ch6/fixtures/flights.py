@@ -78,6 +78,15 @@ def search_flights(
             "stops": stops,
         }
 
+    if datetime.fromisoformat(depart_date).date() < datetime.now().date():
+        return {
+            "offers": [],
+            "count": 0,
+            "note": (
+                f"Departure {depart_date} is in the past."
+            ),
+        }
+        
     ny_airports = {"JFK", "EWR"}
         
     if origin not in ny_airports or destination != "CDG":
@@ -169,4 +178,4 @@ def search_flights(
             ],
         },
     ]
-    return {"offers": offers}
+    return {"offers": offers, "count": len(offers)}

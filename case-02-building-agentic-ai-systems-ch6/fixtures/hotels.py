@@ -15,7 +15,7 @@ Closes:
     DES-8b  trip length disagreed between workers, unchecked
 """
 
-from datetime import date
+import datetime
 
 
 def find_hotels(
@@ -44,8 +44,17 @@ def find_hotels(
             ),
         }
     
-    arrive = date.fromisoformat(check_in)
-    depart = date.fromisoformat(check_out)
+    arrive = datetime.date.fromisoformat(check_in)
+    depart = datetime.date.fromisoformat(check_out)
+    today = datetime.date.today()
+
+    if arrive < today:
+        return {
+            "hotels": [],
+            "count": 0,
+            "note": f"Check-in {check_in} is in the past. Today is {today}.",
+        }
+        
     nights = (depart - arrive).days
     
     if nights < 1:
@@ -128,5 +137,6 @@ def find_hotels(
         "nights": nights,
         "check_in": check_in,
         "check_out": check_out,
+        "count": len(hotels),
         "hotels": hotels,
     }
