@@ -149,6 +149,22 @@ Hotel alone: $2,240. Flights at 2 × $850: $1,700. Activities per person: $120 +
 
 All four workers set `allow_delegation=False` under `Process.hierarchical`. No worker can query another. Combined with DES-8, the only path between workers is context the manager passes forward, which nothing validates.
 
+### DES-12 — Every tool has two names
+
+Each tool is registered under a sentence, e.g.
+`@tool("Search for available flights between cities")`, while the task
+text tells the agent to "Use the search_flights tool". In the baseline
+run the planner bridged the two, restating the task with the long name,
+but nothing guarantees it will. The authors' note on the delegator cell
+reports failed tool invocations and blames smaller models; the name
+mismatch is a candidate contributor, not a proven cause.
+
+Found 2026-09-24 while reading the baseline tool definitions, not during
+the baseline run itself.
+
+**Fix:** register each tool under the name the task text uses, e.g.
+`@tool("search_flights")`. Closed in `src/tools.py`. Whether
+tool-call failures drop is to be observed in the corrected run.
 ---
 
 ## 4. SCORING OF PRE-RUN PREDICTIONS
