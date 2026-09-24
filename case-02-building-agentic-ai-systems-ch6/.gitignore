@@ -1,1 +1,3 @@
-__pycache__/
+printf "__pycache__/\n.venv/\n" > .gitignore
+cat .gitignore
+git status --short
