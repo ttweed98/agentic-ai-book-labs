@@ -300,3 +300,26 @@ Log: `findings/structured-run-2026-09-25.log`. Output: `findings/itinerary.json`
   covers plausibility of times.
 - Hand-computed expected results for this file: R1 pass, R6 pass,
   R7 fail (M-4), R3 total $5,291 against an $8,000 budget.
+
+### Reconciliation (2026-09-25)
+
+`python -m src.reconcile` against `findings/itinerary.json`:
+
+| Check | Result |
+| --- | --- |
+| R1 flight buffers | PASS |
+| R2 hotel dates | PASS |
+| R3 budget | PASS: $5,291 against $8,000; $320/night against $400 |
+| R4 traceability | PASS |
+| R5 fixture names | PASS |
+| R6 pace mix | PASS |
+| R7 transport origin | FAIL: routes start 3.4 km from the Citadines (M-4) |
+
+Expected results were computed by hand before the checks existed; the
+report matched all seven. Every check was also shown failing on
+purpose (activity inside the buffer, Delta's 07:15 arrival, a hotel at
+0.6 km, an all-relaxed plan, a typo in `transportation.py`, a
+fabricated $60 price).
+
+Status: DES-10 and M-7 closed. DES-7 and DES-8 are detected, not
+prevented: the checks report, the crew does not re-plan.

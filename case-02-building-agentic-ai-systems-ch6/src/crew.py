@@ -20,6 +20,8 @@ from src.tools import (
 
 from src.models import ActivityPlan, FlightChoice, HotelChoice, Itinerary, TransportPlan
 
+from src.reconcile import run_all
+
 load_dotenv()  # reads OPENAI_API_KEY from .env, which is never committed
 
 LLM = "gpt-4o"  # the baseline's model, so the two runs are comparable
@@ -257,6 +259,10 @@ async def main():
     with open("findings/itinerary.json", "w") as f:
         f.write(itinerary.model_dump_json(indent=2))
     print(itinerary.model_dump_json(indent=2))
+    print("\n=== Reconciliation ===")
+    for check in run_all(itinerary):
+        status = "PASS" if check.passed else "FAIL"
+        print(f"{status}  {check.check}: {check.detail}")
 
 
 if __name__ == "__main__":
