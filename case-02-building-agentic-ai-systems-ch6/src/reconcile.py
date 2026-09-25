@@ -56,3 +56,21 @@ def check_budget(itinerary: Itinerary) -> CheckResult:
             f" hotel {itinerary.hotel.nightly_rate:.2f}/night against {HOTEL_NIGHTLY_LIMIT}"
         ),
     )
+
+def check_flight_buffers(itinerary: Itinerary) -> CheckResult:
+    """R1 (DES-8a): no activity within BUFFER of landing or of the return departure."""
+    earliest = itinerary.flight.outbound_arrives_at + BUFFER
+    latest_end = itinerary.flight.return_departs_at - BUFFER
+    problems = []
+    for a in itinerary.activities.activities:
+        start = a.starts_at if a.starts_at.tzinfo else a.starts_at.replace(tzinfo=PARIS)
+        end = start + timedelta(minutes=a.duration_minutes)
+        if start < earliest:
+            problems.append(f"{a.name} starts {start:%d %b %H:%M}, before {earliest:%d %b %H:%M}")
+        if end > latest_end:
+            problems.append(f"{a.name} ends {end:%d %b %H:%M}, after {latest_end:%d %b %H:%M}")
+    return CheckResult(
+        check="R1 flight buffers",
+        passed=not problems,
+        detail="; ".join(problems) or "all activities clear of both buffers",
+    )
