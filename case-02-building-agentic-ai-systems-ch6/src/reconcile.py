@@ -14,6 +14,11 @@ from pydantic import BaseModel
 
 from src.models import Itinerary
 
+from fixtures import activities as activity_fixture
+from fixtures import flights as flight_fixture
+from fixtures import hotels as hotel_fixture
+from fixtures import transportation as transport_fixture
+
 PARTY_SIZE = 2  # the request: "7 days and 2 people"
 BUDGET_TOTAL = 8000  # the request: "total budget is about $8000"
 HOTEL_NIGHTLY_LIMIT = 400  # D1: Tony's call between the request's $300 and $400
@@ -21,6 +26,8 @@ BUFFER = timedelta(hours=2)  # R1: after landing, and before the return departur
 PARIS = ZoneInfo("Europe/Paris")  # activity start times are local Paris time
 FIRST_NIGHT_CUTOFF = time(6, 0)  # S-1: arriving before this, the first night still counts
 WALKING_DISTANCE_KM = 1.0  # R7: Ibis (0.6 km) passes; Marriott (2.1) and Citadines (3.4) do not
+TRIP_START = "2026-11-02"  # the request's check-in date, shifted to 2026
+TRIP_END = "2026-11-09"  # the request's check-out date, shifted to 2026
 
 
 def load_itinerary(path: str = "findings/itinerary.json") -> Itinerary:
@@ -121,4 +128,32 @@ def check_transport_origin(itinerary: Itinerary) -> CheckResult:
             f"routes start at {', '.join(stations)} by the Eiffel Tower; "
             f"{hotel.name} is {hotel.distance_km} km away"
         ),
+    )
+
+def check_pace_mix(itinerary: Itinerary) -> CheckResult:
+    """R6 (DES-7): a moderate plan contains both relaxed and active activities."""
+    paces = {a.pace for a in itinerary.activities.activities}
+    missing = {"relaxed", "active"} - paces
+    return CheckResult(
+        check="R6 pace mix",
+        passed=not missing,
+        detail=f"missing: {', '.join(sorted(missing))}" if missing else "both relaxed and active present",
+    )
+
+def check_fixture_names() -> CheckResult:
+    """R5 (DES-7): every activity has a transport route under the same exact name."""
+    catalogue = activity_fixture.find_activities(
+        location="Paris", date=TRIP_START, preferences="any"
+    )["activities"]
+    missing = []
+    for item in catalogue:
+        routes = transport_fixture.find_transportation(
+            location="Paris", origin="Hotel", destination=item["name"]
+        )
+        if routes["count"] == 0:
+            missing.append(item["name"])
+    return CheckResult(
+        check="R5 fixture names",
+        passed=not missing,
+        detail=f"no route for: {', '.join(missing)}" if missing else "every activity has a route",
     )
