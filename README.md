@@ -17,3 +17,9 @@ a numbered finding.
 4. Keep the evidence: run logs and outputs live in each case's `findings/` folder.
 
 Case 01, an agentic network-operations assistant, lives in its own repository.
+
+The agent and task text in `src/crew.py` is copied from the book's code,
+Copyright (c) 2024 Packt, used under the MIT License. See `LICENSE-PACKT`.
+
+Case 01, an agentic network-operations assistant, lives in its own repository:
+[agentic-ai-labs](https://github.com/ttweed98/agentic-ai-labs).
