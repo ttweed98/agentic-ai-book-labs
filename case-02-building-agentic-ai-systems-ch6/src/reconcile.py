@@ -5,7 +5,7 @@ and reports pass or fail with a reason. Detection only: nothing here
 changes the plan.
 """
 
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 import math
@@ -19,6 +19,7 @@ BUDGET_TOTAL = 8000  # the request: "total budget is about $8000"
 HOTEL_NIGHTLY_LIMIT = 400  # D1: Tony's call between the request's $300 and $400
 BUFFER = timedelta(hours=2)  # R1: after landing, and before the return departure
 PARIS = ZoneInfo("Europe/Paris")  # activity start times are local Paris time
+FIRST_NIGHT_CUTOFF = time(6, 0)  # S-1: arriving before this, the first night still counts
 
 
 def load_itinerary(path: str = "findings/itinerary.json") -> Itinerary:
@@ -73,4 +74,25 @@ def check_flight_buffers(itinerary: Itinerary) -> CheckResult:
         check="R1 flight buffers",
         passed=not problems,
         detail="; ".join(problems) or "all activities clear of both buffers",
+    )
+
+def check_hotel_dates(itinerary: Itinerary) -> CheckResult:
+    """R2 (DES-8b): hotel check-in and check-out line up with the flights."""
+    hotel = itinerary.hotel
+    arrival = itinerary.flight.outbound_arrives_at.astimezone(PARIS)
+    departure = itinerary.flight.return_departs_at.astimezone(PARIS)
+    first_night_ends = datetime.combine(
+        hotel.check_in + timedelta(days=1), FIRST_NIGHT_CUTOFF, tzinfo=PARIS
+    )
+    problems = []
+    if arrival.date() < hotel.check_in:
+        problems.append(f"arrives {arrival:%d %b %H:%M}, before check-in on {hotel.check_in:%d %b}")
+    if arrival > first_night_ends:
+        problems.append(f"arrives {arrival:%d %b %H:%M}: the {hotel.check_in:%d %b} night is paid but unused")
+    if departure.date() != hotel.check_out:
+        problems.append(f"departs {departure:%d %b}, but check-out is {hotel.check_out:%d %b}")
+    return CheckResult(
+        check="R2 hotel dates",
+        passed=not problems,
+        detail="; ".join(problems) or "hotel dates match the flights",
     )
