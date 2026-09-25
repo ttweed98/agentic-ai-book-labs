@@ -129,7 +129,7 @@ activity_planning_task = Task(
     expected_output="A day-by-day activity plan that matches the traveler's interests and pace preferences.",
 )
 
-transportation_plannning_task = Task(
+transportation_planning_task = Task(
     description="""
     Use the find_transportation tool to identify options at the destination for:
     1. Airport to hotel transfer

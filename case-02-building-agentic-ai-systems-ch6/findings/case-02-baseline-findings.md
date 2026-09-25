@@ -221,3 +221,42 @@ dates. The $300 / $400 hotel-budget contradiction is kept on purpose (DES-5).
   gives both values.
 - Open question (not a prediction): how the agent handles "moderate" when
   the fixture tags activities only `relaxed` or `active`.
+
+### Results (scored after running, 2026-09-25)
+
+Run: crewai 1.15.17, gpt-4o. Log: `findings/middle-run-2026-09-25.log`.
+One run only: evidence, not a pattern.
+
+**Predictions**
+- P-M1 Dates: CONFIRMED. Every tool call used a 2026 date.
+- P-M2 Budget: CONFIRMED. The hotel step used "$400 per night"; $300 never
+  appears, and the chosen hotel ($320) is over the traveler's $300 line.
+- Moderate (open question): ANSWERED. The planner restated the docstring
+  ("mix relaxed and active") and the plan mixed both tags.
+
+**Closed, with evidence in the log**
+- DES-1: the activity task shows the interests and pace, not braces.
+- DES-3: arrival 7:15 AM on 3 Nov (next day), computed by the fixture.
+- DES-4: "Direct" read from the `stops` field.
+
+**Observed**
+- M-1 Workers never ran: every block is "Travel Planning Delegator".
+- M-2 Tool docstrings reappear as the planner's numbered steps.
+- M-3 Transport missed on 4 invented names, then retried with exact names
+  from the `note` and recovered 3.
+- M-4 Transport routes start at Bir-Hakeim and are labelled "From Hotel";
+  the chosen hotel is in Saint-Germain, 3.4 km away. Unreconciled.
+- M-5 The hotel night of 2 Nov is paid but unused: the flight lands on
+  3 Nov. Unreconciled (DES-8b).
+- M-6 The morning-departure preference was traded for price, stated openly.
+- M-7 The final output is only the last task (activities): no assembled
+  itinerary and no total (DES-10 open).
+- M-8 All 8 catalogue items were used once, and every price and duration
+  matches the fixture. After day 4 the plan gives unpriced generic
+  suggestions instead of inventing priced items.
+
+**Environment**
+- E-M1 CrewAI prompted interactively for tracing mid-run (20 s timeout),
+  then saved "tracing disabled".
+- E-M2 A typo in a task name inside `delegate_plan` passed every import
+  check and failed only at run time, after the coordinator had already run.
