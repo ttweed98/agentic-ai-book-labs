@@ -5,7 +5,7 @@ reconciliation checks can read fields rather than parse paragraphs.
 Fields are limited to what a check needs.
 """
 
-from datetime import date, datetime, time
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -41,8 +41,9 @@ class HotelChoice(BaseModel):
 class ActivityItem(BaseModel):
     """One scheduled activity, copied from find_activities."""
 
-    day: date
-    start_time: time = Field(description="Local Paris time the activity starts, HH:MM")
+    starts_at: datetime = Field(
+        description="Local Paris date and time the activity starts, e.g. 2026-11-03T10:00"
+    )
     name: str = Field(description="Exact activity name from the tool")
     pace: Literal["relaxed", "active"]
     price: float
