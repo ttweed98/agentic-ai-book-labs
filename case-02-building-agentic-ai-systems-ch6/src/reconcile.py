@@ -157,3 +157,43 @@ def check_fixture_names() -> CheckResult:
         passed=not missing,
         detail=f"no route for: {', '.join(missing)}" if missing else "every activity has a route",
     )
+
+def check_traceability(itinerary: Itinerary) -> CheckResult:
+    """R4 (DES-7): every chosen item matches what a fixture actually returned."""
+    problems = []
+
+    offers = flight_fixture.search_flights(
+        origin="JFK", destination="CDG", depart_date=TRIP_START, return_date=TRIP_END
+    )["offers"]
+    f = itinerary.flight
+    if not any(o["carrier"] == f.carrier and o["price_per_person"] == f.price_per_person for o in offers):
+        problems.append(f"flight: {f.carrier} at {f.price_per_person} is not a fixture offer")
+
+    hotels = hotel_fixture.find_hotels(location="Paris", check_in=TRIP_START, check_out=TRIP_END)["hotels"]
+    h = itinerary.hotel
+    if not any(x["name"] == h.name and x["stay_total"] == h.stay_total for x in hotels):
+        problems.append(f"hotel: {h.name} at {h.stay_total} is not a fixture hotel")
+
+    catalogue = {
+        x["name"]: x
+        for x in activity_fixture.find_activities(
+            location="Paris", date=TRIP_START, preferences="any"
+        )["activities"]
+    }
+    for a in itinerary.activities.activities:
+        item = catalogue.get(a.name)
+        if item is None or item["price"] != a.price or item["group_size"] != a.group_size:
+            problems.append(f"activity: {a.name} at {a.price} is not in the catalogue")
+
+    for leg in itinerary.transport.legs:
+        routes = transport_fixture.find_transportation(
+            location="Paris", origin="Hotel", destination=leg.destination
+        )["routes"]
+        if not any(r["from_station"] == leg.from_station and r["price"] == leg.price for r in routes):
+            problems.append(f"transport: {leg.destination} from {leg.from_station} is not a fixture route")
+
+    return CheckResult(
+        check="R4 traceability",
+        passed=not problems,
+        detail="; ".join(problems) or "every item matches a fixture result",
+    )
