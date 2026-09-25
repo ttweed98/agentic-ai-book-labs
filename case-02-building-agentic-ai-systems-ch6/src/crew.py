@@ -18,6 +18,8 @@ from src.tools import (
     search_flights,
 )
 
+from src.models import FlightChoice
+
 load_dotenv()  # reads OPENAI_API_KEY from .env, which is never committed
 
 LLM = "gpt-4o"  # the baseline's model, so the two runs are comparable
@@ -104,7 +106,8 @@ flight_search_task = Task(
     Compare the available options and recommended choice best meets their needs.
     """,
     agent=flight_booking_worker,
-    expected_output="A flight itinerary for booking based on the traveler's preferences.",  
+    expected_output="A flight itinerary for booking based on the traveler's preferences.",
+    output_pydantic=FlightChoice,
 )
 
 hotel_search_task = Task(
@@ -240,6 +243,7 @@ async def main():
     plan = await coordinate_request(REQUEST)
     itinerary = await delegate_plan(plan, ACTIVITY_INTERESTS, ACTIVITY_PACE)
     print(itinerary.raw)
+    print(itinerary.tasks_output[0].pydantic)
 
 
 if __name__ == "__main__":

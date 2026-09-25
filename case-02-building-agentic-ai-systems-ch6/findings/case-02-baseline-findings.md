@@ -260,3 +260,24 @@ One run only: evidence, not a pattern.
   then saved "tracing disabled".
 - E-M2 A typo in a task name inside `delegate_plan` passed every import
   check and failed only at run time, after the coordinator had already run.
+
+### Smoke test: FlightChoice on the flight task (2026-09-25)
+
+Log: `findings/smoke-test-2026-09-25.log`.
+
+**Predictions (made before running)**
+- P-S1 Delta chosen again: FALSIFIED. Air France ($850, 10:30 AM
+  departure) won; the morning preference beat price, the reverse of the
+  middle run. Two runs, two choices; the cause is not established.
+- P-S2 FlightChoice ignored under the hierarchical process: FALSIFIED.
+  `tasks_output[0].pydantic` returned a populated FlightChoice. Both
+  times parsed as timezone-aware datetimes and match the fixture.
+
+**Observed**
+- S-1 Air France lands at 00:00 on 3 Nov, so the 2 Nov hotel night is
+  used (arrival around 01:30). R2 must test "arrives before the next
+  morning", not "dates are equal".
+- S-2 The activity plan says "Morning: Arrival and check-in" on 3 Nov.
+  The plane lands at midnight and check-in is 2 Nov. The prose
+  contradicts the structured flight data; R1 would still pass, because
+  it checks activity start times, not narrative lines.
