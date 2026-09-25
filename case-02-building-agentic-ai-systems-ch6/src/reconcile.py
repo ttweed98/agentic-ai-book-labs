@@ -20,6 +20,7 @@ HOTEL_NIGHTLY_LIMIT = 400  # D1: Tony's call between the request's $300 and $400
 BUFFER = timedelta(hours=2)  # R1: after landing, and before the return departure
 PARIS = ZoneInfo("Europe/Paris")  # activity start times are local Paris time
 FIRST_NIGHT_CUTOFF = time(6, 0)  # S-1: arriving before this, the first night still counts
+WALKING_DISTANCE_KM = 1.0  # R7: Ibis (0.6 km) passes; Marriott (2.1) and Citadines (3.4) do not
 
 
 def load_itinerary(path: str = "findings/itinerary.json") -> Itinerary:
@@ -95,4 +96,29 @@ def check_hotel_dates(itinerary: Itinerary) -> CheckResult:
         check="R2 hotel dates",
         passed=not problems,
         detail="; ".join(problems) or "hotel dates match the flights",
+    )
+
+def check_transport_origin(itinerary: Itinerary) -> CheckResult:
+    """R7 (DES-8, M-4): routes start within walking distance of the hotel.
+
+    Every fixture route starts at Bir-Hakeim, by the Eiffel Tower, and the
+    hotel's distance_km is measured from the Eiffel Tower.
+    """
+    hotel = itinerary.hotel
+    stations = sorted({leg.from_station for leg in itinerary.transport.legs})
+    if not stations:
+        return CheckResult(check="R7 transport origin", passed=True, detail="no routes to check")
+    if hotel.distance_km <= WALKING_DISTANCE_KM:
+        return CheckResult(
+            check="R7 transport origin",
+            passed=True,
+            detail=f"{hotel.name} is {hotel.distance_km} km from {', '.join(stations)}",
+        )
+    return CheckResult(
+        check="R7 transport origin",
+        passed=False,
+        detail=(
+            f"routes start at {', '.join(stations)} by the Eiffel Tower; "
+            f"{hotel.name} is {hotel.distance_km} km away"
+        ),
     )
