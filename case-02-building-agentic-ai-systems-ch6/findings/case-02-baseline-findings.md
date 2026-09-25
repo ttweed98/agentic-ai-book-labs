@@ -281,3 +281,22 @@ Log: `findings/smoke-test-2026-09-25.log`.
   The plane lands at midnight and check-in is 2 Nov. The prose
   contradicts the structured flight data; R1 would still pass, because
   it checks activity start times, not narrative lines.
+
+### Structured run (2026-09-25)
+
+Log: `findings/structured-run-2026-09-25.log`. Output: `findings/itinerary.json`.
+
+- P-R1 ActivityPlan is the weakest: first run, RIGHT TASK, WRONG CAUSE.
+  All four outputs validated; the run then crashed saving the activity
+  output, because CrewAI's CrewJSONEncoder cannot serialize datetime.time
+  (E-S1). Fixed by using one `starts_at` datetime. Rerun: all four valid.
+- M-7 closed: the four outputs are assembled in code into one Itinerary.
+- R-1 Air France chosen for the third run running; Citadines again.
+- R-2 Transport tried the hotel's name as a destination (miss), then
+  planned only the airport: 0 of 12 activities routed. Transport runs
+  before activities exist.
+- R-3 Four activities repeated (Louvre, Seine cruise, Montmartre, picnic).
+- R-4 Dinner cruise and Eiffel dinner both scheduled at 15:00. No check
+  covers plausibility of times.
+- Hand-computed expected results for this file: R1 pass, R6 pass,
+  R7 fail (M-4), R3 total $5,291 against an $8,000 budget.

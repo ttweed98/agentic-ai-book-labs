@@ -1,0 +1,137 @@
+{
+  "flight": {
+    "carrier": "Air France",
+    "flight_numbers": [
+      "AF 007",
+      "AF 008"
+    ],
+    "price_per_person": 850.0,
+    "outbound_arrives_at": "2026-11-03T00:00:00+01:00",
+    "return_departs_at": "2026-11-09T13:00:00+01:00"
+  },
+  "hotel": {
+    "name": "Citadines Saint-Germain-des-Prés",
+    "nightly_rate": 320.0,
+    "stay_total": 2240.0,
+    "check_in": "2026-11-02",
+    "check_out": "2026-11-09",
+    "distance_km": 3.4
+  },
+  "transport": {
+    "legs": [
+      {
+        "destination": "Airport",
+        "from_station": "Bir-Hakeim",
+        "line": "RER B",
+        "price": 2.75,
+        "group_size": 1,
+        "rides": 2
+      }
+    ]
+  },
+  "activities": {
+    "activities": [
+      {
+        "starts_at": "2026-11-03T10:00:00",
+        "name": "Louvre Guided Visit",
+        "pace": "active",
+        "price": 85.0,
+        "group_size": 1,
+        "duration_minutes": 180
+      },
+      {
+        "starts_at": "2026-11-03T15:00:00",
+        "name": "Picnic in the Luxembourg Gardens",
+        "pace": "relaxed",
+        "price": 0.0,
+        "group_size": 1,
+        "duration_minutes": 120
+      },
+      {
+        "starts_at": "2026-11-04T10:00:00",
+        "name": "Montmartre Walking Tour",
+        "pace": "active",
+        "price": 30.0,
+        "group_size": 1,
+        "duration_minutes": 150
+      },
+      {
+        "starts_at": "2026-11-04T15:00:00",
+        "name": "Seine River Dinner Cruise",
+        "pace": "relaxed",
+        "price": 90.0,
+        "group_size": 1,
+        "duration_minutes": 75
+      },
+      {
+        "starts_at": "2026-11-05T10:00:00",
+        "name": "Eiffel Tower Summit Visit",
+        "pace": "active",
+        "price": 65.0,
+        "group_size": 1,
+        "duration_minutes": 120
+      },
+      {
+        "starts_at": "2026-11-05T15:00:00",
+        "name": "Couples Hammam and Spa",
+        "pace": "relaxed",
+        "price": 140.0,
+        "group_size": 2,
+        "duration_minutes": 90
+      },
+      {
+        "starts_at": "2026-11-06T10:00:00",
+        "name": "Catacombs Tour",
+        "pace": "active",
+        "price": 35.0,
+        "group_size": 1,
+        "duration_minutes": 90
+      },
+      {
+        "starts_at": "2026-11-06T15:00:00",
+        "name": "Dinner at Eiffel Tower",
+        "pace": "relaxed",
+        "price": 90.0,
+        "group_size": 1,
+        "duration_minutes": 105
+      },
+      {
+        "starts_at": "2026-11-07T10:00:00",
+        "name": "Louvre Guided Visit",
+        "pace": "active",
+        "price": 85.0,
+        "group_size": 1,
+        "duration_minutes": 180
+      },
+      {
+        "starts_at": "2026-11-07T15:00:00",
+        "name": "Seine River Dinner Cruise",
+        "pace": "relaxed",
+        "price": 90.0,
+        "group_size": 1,
+        "duration_minutes": 75
+      },
+      {
+        "starts_at": "2026-11-08T10:00:00",
+        "name": "Montmartre Walking Tour",
+        "pace": "active",
+        "price": 30.0,
+        "group_size": 1,
+        "duration_minutes": 150
+      },
+      {
+        "starts_at": "2026-11-08T15:00:00",
+        "name": "Picnic in the Luxembourg Gardens",
+        "pace": "relaxed",
+        "price": 0.0,
+        "group_size": 1,
+        "duration_minutes": 120
+      }
+    ],
+    "suggestions": [
+      "Consider visiting the Notre Dame Cathedral early in the morning to avoid crowds.",
+      "Enjoy a leisurely breakfast at Café de Flore in Saint-Germain-des-Prés.",
+      "Spend an afternoon exploring the boutiques along the Champs-Élysées."
+    ]
+  }
+}
