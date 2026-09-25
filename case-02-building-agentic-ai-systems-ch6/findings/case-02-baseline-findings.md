@@ -207,3 +207,17 @@ The earlier spec-driven approach (FLT-01…PLN-10, six ranking tables, forty-nin
 It is superseded as an *implementation* target because it was building a production-scale rule engine when the lab's purpose is a student-legible correction of a published chapter. Other learners have this book; a diff against Chapter 6 is legible to them in a way that forty-nine bespoke rules is not.
 
 `spec/` and `origin/conference_travel.md` are retained as the record of that experiment.
+
+## Middle run — corrected fixtures + DES-1 only
+
+### Input change
+The book's request is used word for word except the dates: 5/7/2025 and
+5/14/2025 became 11/2/2026 and 11/9/2026, because the fixtures refuse past
+dates. The $300 / $400 hotel-budget contradiction is kept on purpose (DES-5).
+
+### Predictions (written before running)
+- P-M1 Dates: every tool call uses a 2026 date.
+- P-M2 Budget: the plan uses the $400 hotel budget, not $300. The request
+  gives both values.
+- Open question (not a prediction): how the agent handles "moderate" when
+  the fixture tags activities only `relaxed` or `active`.

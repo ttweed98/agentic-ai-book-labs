@@ -22,6 +22,23 @@ load_dotenv()  # reads OPENAI_API_KEY from .env, which is never committed
 
 LLM = "gpt-4o"  # the baseline's model, so the two runs are comparable
 
+#  The  book's request, word for word, except the dates: the book's were in
+#  2025, and the fixtures refuse past dates. The $300/$400 hotel budget
+#  contradiction is kept on purpose; it is the evidence for DES-5/
+REQUEST = """Traveler Alex Johnson is planning to travel to Paris from New York for his anniversary for 7 days and 2 people.
+- His total budget is about $8000, with hotel budget being $300.
+- Direct flights preferred, morning departure if possible.
+- Hotel in Paris under $400 with wifi preferred. Check in at 11/2/2026 and checkout at 11/9/2026
+- Activities in paris should be moderate pace with some relaxation time built in
+- Mix of walking and public transit, with occasional taxis for evening outings
+"""
+
+# DES-1: values for the activity tasks's {activity_interests} and
+# {activity_pace}, taken from the request's own wording rather than
+# extracted by an agent, so no retelling sits between request and task.
+ACTIVITY_INTERESTS = "an anniversary trip with some relaxation time built in"
+ACTIVITY_PACE = "moderate"
+
 flight_booking_worker = Agent(
     role="Flight Booking Specialist",
     goal="Find and book the optimal flights for the traveler",
@@ -126,3 +143,104 @@ transportation_plannning_task = Task(
     agent=transportation_worker,
     expected_output="A transportation plan covering all necessary transfers during the trip.", 
 )
+
+coordinator_agent = Agent(
+    role="Coordinator Agent",
+    goal="Ensure cohesive travel plans and maintain high customer satisfaction",
+    backstory="""A seasoned travel industry veteran with 15 years of experience in luxury travel planning
+    and project management. Known for orchestrating seamless multi-destination trips for high-profile cleitns
+    and managing complex itineraries across different time zones and cultures.
+    """,
+    verbose=False,
+    llm=LLM,
+    max_iter=1,
+    max_retry_limit=3,
+)
+
+async def coordinate_request(traveler_request):
+    coordinator_to_delegator_task= Task(
+        description=dedent(f"""\
+            As the Coordinator Agent, you've received a travel planning request/
+            
+            Traveler request:
+            {traveler_request}
+            
+            Create a clear, concise travel planning steps for this trip. Only plan
+            for the things requested by the traveler, DO NOT assume or add things not requested. Provide a
+            short overview, followed by the steps required for flight booking, hotel booking, activities,
+            and local transportation.
+            
+            Your output should be a step-by-step plan along with preference details that the Delegator Agent
+            can use to effectively assign tasks to the specialist workers. Do not provide any summary or mention
+            "Delegator" or "coordinator".
+            """),
+            expected_output="A detailed step-by-step travel plan for the delegator agent",
+            agent=coordinator_agent,
+    )
+    
+    # Execute the coodinator's initial planning task
+    coordinator_crew = Crew(
+        agents=[coordinator_agent],
+        tasks=[coordinator_to_delegator_task],
+        verbose=False, #True if you want to see detailed execution
+        process=Process.sequential,
+    )
+    coordinator_plan = await coordinator_crew.kickoff_async(inputs={"traveler_request": traveler_request})
+    print("\n=== Coordinator Planning Complete ===\n")
+    return coordinator_plan
+
+async def delegate_plan(plan, activity_interests, activity_pace):
+    delegator_goal = f"""
+        Effectively distribute travel planning tasks to specialized workers to create a detailed booking itinerary
+        for the plan below:
+
+        {plan}
+
+        Based on this plan, your goal is to create a detailed booking itinerary and trip plan for the user that includes
+        flight booking & cost recommendation, hotels and hotel cost, activities and local transportation options
+        and recommendations.
+        """
+
+    delegator_agent = Agent(
+        role="Travel Planning Delegator",
+        goal=delegator_goal,
+        backstory="""You are an expert project manager with a talent for breaking down travel planning into
+        component tasks and assigning them to the right specialists. You understand each worker's strengths
+        and ensure they have the information needed to excel. You track progress, resolve bottlenecks, and
+        ensure all elements of the trip are properly addressed.""",
+        verbose=True,
+        allow_delegation=True,
+        llm=LLM,
+    )
+
+    # Execute the delegator's task assignment
+    delegator_crew = Crew(
+        agents=[flight_booking_worker, hotel_booking_worker, transportation_worker, activity_planning_worker],
+        tasks=[flight_search_task, hotel_search_task, transportation_planning_task, activity_planning_task],
+        verbose=False,
+        manager_agent=delegator_agent,
+        process=Process.hierarchical,
+        planning=True,
+        full_output=True,
+    )
+
+    # DES-1: the book called kickoff_async() with no inputs, so the activity
+    # task's {activity_interests} and {activity_pace} reached the model as
+    # literal text.
+    full_itinerary = await delegator_crew.kickoff_async(
+        inputs={
+            "activity_interests": activity_interests,
+            "activity_pace": activity_pace,
+        }
+    )
+    print("\n=== Delegator Task Complete ===\n")
+    return full_itinerary
+
+async def main():
+    plan = await coordinate_request(REQUEST)
+    itinerary = await delegate_plan(plan, ACTIVITY_INTERESTS, ACTIVITY_PACE)
+    print(itinerary.raw)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
