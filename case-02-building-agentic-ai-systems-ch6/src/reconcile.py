@@ -197,3 +197,21 @@ def check_traceability(itinerary: Itinerary) -> CheckResult:
         passed=not problems,
         detail="; ".join(problems) or "every item matches a fixture result",
     )
+
+def run_all(itinerary: Itinerary) -> list[CheckResult]:
+    """Run every check and return the results in check order."""
+    return [
+        check_flight_buffers(itinerary),
+        check_hotel_dates(itinerary),
+        check_budget(itinerary),
+        check_traceability(itinerary),
+        check_fixture_names(),
+        check_pace_mix(itinerary),
+        check_transport_origin(itinerary),
+    ]
+
+
+if __name__ == "__main__":
+    for result in run_all(load_itinerary()):
+        status = "PASS" if result.passed else "FAIL"
+        print(f"{status}  {result.check}: {result.detail}")
