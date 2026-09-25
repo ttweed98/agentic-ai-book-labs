@@ -18,7 +18,7 @@ from src.tools import (
     search_flights,
 )
 
-from src.models import FlightChoice
+from src.models import ActivityPlan, FlightChoice, HotelChoice, Itinerary, TransportPlan
 
 load_dotenv()  # reads OPENAI_API_KEY from .env, which is never committed
 
@@ -118,7 +118,8 @@ hotel_search_task = Task(
     Explain why your recommended choice is the best match for this traveler.
     """,
     agent=hotel_booking_worker,
-    expected_output="A hotel recommendation based on the traveler's preferences and budget."    
+    expected_output="A hotel recommendation based on the traveler's preferences and budget.",
+    output_pydantic=HotelChoice,
 )
 
 activity_planning_task = Task(
@@ -130,6 +131,7 @@ activity_planning_task = Task(
     """,
     agent=activity_planning_worker,
     expected_output="A day-by-day activity plan that matches the traveler's interests and pace preferences.",
+    output_pydantic=ActivityPlan,
 )
 
 transportation_planning_task = Task(
@@ -141,10 +143,11 @@ transportation_planning_task = Task(
     
     Consider the traveler's preferences where  possible.
     
-    ased on the returned JSON data, recommend the best transportation options for each segment of their trip.
+    Based on the returned JSON data, recommend the best transportation options for each segment of their trip.
     """,
     agent=transportation_worker,
-    expected_output="A transportation plan covering all necessary transfers during the trip.", 
+    expected_output="A transportation plan covering all necessary transfers during the trip.",
+    output_pydantic=TransportPlan,
 )
 
 coordinator_agent = Agent(
@@ -241,9 +244,19 @@ async def delegate_plan(plan, activity_interests, activity_pace):
 
 async def main():
     plan = await coordinate_request(REQUEST)
-    itinerary = await delegate_plan(plan, ACTIVITY_INTERESTS, ACTIVITY_PACE)
-    print(itinerary.raw)
-    print(itinerary.tasks_output[0].pydantic)
+    result = await delegate_plan(plan, ACTIVITY_INTERESTS, ACTIVITY_PACE)
+
+    outputs = result.tasks_output
+    itinerary = Itinerary(
+        flight=outputs[0].pydantic,
+        hotel=outputs[1].pydantic,
+        transport=outputs[2].pydantic,
+        activities=outputs[3].pydantic,
+    )
+
+    with open("findings/itinerary.json", "w") as f:
+        f.write(itinerary.model_dump_json(indent=2))
+    print(itinerary.model_dump_json(indent=2))
 
 
 if __name__ == "__main__":

@@ -73,3 +73,11 @@ class TransportPlan(BaseModel):
     """Every route the plan uses."""
 
     legs: list[TransportLeg]
+
+class Itinerary(BaseModel):
+    """The whole trip, assembled in code from the four task outputs."""
+
+    flight: FlightChoice
+    hotel: HotelChoice
+    transport: TransportPlan
+    activities: ActivityPlan
